@@ -1,5 +1,5 @@
 {
-  "name": "directive-director",
+  "name": "angular-hint-directive",
   "version": "0.0.0",
   "description": "tool for identifing mistyped attributes and directives",
   "main": "js/dd-lib.js",
