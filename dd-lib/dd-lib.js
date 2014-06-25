@@ -177,8 +177,9 @@ ddLib.findFailedElements = function(scopeElements, options) {
 ddLib.getFailedAttributesOfElement = function(options, element) {
   //console.log(element);
   if(element.attributes.length) {
-    element.attributes[element.attributes.length] = {nodeName: "*"+element.nodeName.toLowerCase()};
-    var failedAttributes = ddLib.getFailedAttributes(element.attributes, options);
+    var elementAttributes = Array.prototype.slice.call(element.attributes);
+    elementAttributes.push({nodeName: "*"+element.nodeName.toLowerCase()});
+    var failedAttributes = ddLib.getFailedAttributes(elementAttributes, options);
     if(failedAttributes.length) {
       return {
         domElement: element,
@@ -187,10 +188,10 @@ ddLib.getFailedAttributesOfElement = function(options, element) {
     }
   }
 };
-//we go until <= length because we added 1 attribute, tag name, to the list of attributes
+
 ddLib.getFailedAttributes = function(attributes, options) {
   var failedAttributes = [];
-  for(var i = 0; i <= attributes.length; i++) {
+  for(var i = 0; i < attributes.length; i++) {
     var attr = ddLib.normalizeAttribute(attributes[i].nodeName);
     var result = ddLib.attributeExsistsInTypes(attr,options);
     if(!result.exsists) {

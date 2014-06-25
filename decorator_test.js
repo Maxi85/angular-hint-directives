@@ -12,6 +12,7 @@ describe('ddLib and Angular Integration Test', function() {
       $compile = _$compile_;
 
       spyOn(console, 'log').andCallThrough();
+      spyOn(console, 'warn').andCallThrough();
     }));
 
     it('should track that ddLib.beginSearch was called', function() {
@@ -19,51 +20,48 @@ describe('ddLib and Angular Integration Test', function() {
       var html = '<div id="topTest"><div ng-click="">Testing</div><p ng-src="">Testing</p></div>';
       var element = angular.element(html);
       $compile(element)($rootScope);
-      $rootScope.$digest();
       $rootScope.$apply();
       expect(spy).toHaveBeenCalled();
     });
 
     it('should have no return no errors if there are none', function() {
+      spyOn(ddLib, 'displayResults').andCallFake(
+        function(data) {
+          console.log(data.length);
+        });
       var html = '<div id="topTest"><div ng-click="">Testing</div><p ng-src="">Testing</p></div>';
       var element = angular.element(html);
       $compile(element)($rootScope);
-      $rootScope.$digest();
-      spyOn(ddLib, 'displayResults').andCallFake(
-        function(data) {
-          console.log(data.length);
-        });
-
       $rootScope.$apply();
-      expect(console.log)
-        .toHaveBeenCalledWith(0);
+      expect(console.log).toHaveBeenCalledWith(0);
     });
 
     it('should return the console.log the correct number of errors', function() {
-      var html = '<div id="topTest"><div ng-cick="">Testing</div><p ng-src="">Testing</p></div>';
-      var element = angular.element(html);
-      $compile(element)($rootScope);
-      $rootScope.$digest();
       spyOn(ddLib, 'displayResults').andCallFake(
         function(data) {
           console.log(data.length);
         });
+      var html = '<div id="topTest"><div ng-cick="">Testing</div><p ng-src="">Testing</p></div>';
+      var element = angular.element(html);
+      $compile(element)($rootScope);
       $rootScope.$apply();
       expect(console.log).toHaveBeenCalledWith(1);
     });
 
   });
-  ddescribe('angular.module Decorator', function() {
+  describe('angular.module Decorator', function() {
     var $rootScope, $compile;
 
-    angular.module('testModule',[]).directive('testDirective', [function() {
-      return {
-        restrict: 'CE',
-        template: '<h3>This is Test Directive</h3>'
-      }
-    }]);
 
-    beforeEach(module('testModule'));
+
+    beforeEach(inject(function() {
+      angular.module('testModule',[]).directive('testDirective', [function() {
+        return {
+          restrict: 'CE',
+          template: '<h3>This is Test Directive</h3>'
+        }
+      }]);
+    }));
 
     beforeEach(inject(function(_$rootScope_, _$compile_) {
       $rootScope = _$rootScope_;
@@ -75,7 +73,7 @@ describe('ddLib and Angular Integration Test', function() {
       var html = '<div id="outer"><test-directive></test-directive></div>';
       var element = angular.element(html);
       $compile(element)($rootScope);
-      $rootScope.$apply()
+      $rootScope.$apply();
       var customDirectives = ddLib.directiveTypes['angular-custom-directives'].directives;
       expect(customDirectives['test-directive']).toBeTruthy();
     })
@@ -84,8 +82,8 @@ describe('ddLib and Angular Integration Test', function() {
       var element2 = angular.element(html2);
       $compile(element2)($rootScope);
       $rootScope.$apply();
-      expect(console.warn).toHaveBeenCalledWith('There was an AngularJS error in P element with id:'+
-        ' #toFailTest. Found incorrect attribute "tst-dirctive" try "test-directive".');
+      expect(console.warn).toHaveBeenCalledWith('There was an AngularJS error in P element with '+
+        'id: #toFailTest. Found incorrect attribute "tst-dirctive" try "test-directive".');
     })
     it('should log error if custom directive is used incorrectly based on restrict', function() {
       var html3 = '<div id="outer3"><p id="toFailTest3" test-directive=""></p></div>';
@@ -93,8 +91,8 @@ describe('ddLib and Angular Integration Test', function() {
       $compile(element3)($rootScope);
       $rootScope.$apply();
       expect(console.warn).toHaveBeenCalledWith('There was an AngularJS error in P element with '+
-        'id: #toFailTest3. Attribute "test-directive" is reserved for element and class tag names'+
-        ' only.');
+        'id: #toFailTest3. Attribute name "test-directive" is reserved for element and class'+
+        ' names only.');
     });
     it
   });

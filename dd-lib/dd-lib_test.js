@@ -9,18 +9,18 @@ describe('dd-app', function() {
     })
     it('should return an array with the correct number of failed elements', function() {
       var elementsToTest = [
-        {attributes: [{nodeName:'ng-ap'},{nodeName:'ng-hef'}]},
-        {attributes: [{nodeName:'ng-src'}]},
-        {attributes: [{nodeName:'ng-clic'}]}
+        {attributes: [{nodeName:'ng-ap'},{nodeName:'ng-hef'}], nodeName: 'DIV'},
+        {attributes: [{nodeName:'ng-src'}], nodeName: 'DIV'},
+        {attributes: [{nodeName:'ng-clic'}], nodeName: 'DIV'}
       ]
       var results = ddLib.beginSearch(elementsToTest);
       expect(results.length).toBe(2);
     })
     it('should return an array of objects that have match and error properties', function(){
       var elementsToTest = [
-        {attributes: [{nodeName:'ng-ap'},{nodeName:'ng-hef'}]},
-        {attributes: [{nodeName:'ng-src'}]},
-        {attributes: [{nodeName:'ng-clic'}]}
+        {attributes: [{nodeName:'ng-ap'},{nodeName:'ng-hef'}], nodeName: 'DIV'},
+        {attributes: [{nodeName:'ng-src'}], nodeName: 'DIV'},
+        {attributes: [{nodeName:'ng-clic'}], nodeName: 'DIV'}
       ]
       var corrections = ddLib.beginSearch(elementsToTest);
       missingProperties = false;
@@ -79,7 +79,7 @@ describe('dd-app', function() {
   describe('findClosestMatchIn()', function() {
     it('should throw if passed undefined or null', function() {
       expect(function() {
-        ddLib.findClosestMatchIn({a:''},null);
+        ddLib.findClosestMatchIn({a:'',b:''},null);
       }).toThrow('Function must be passed a string as second parameter.');
       expect(function() {
         ddLib.findClosestMatchIn({a:''},undefined);
@@ -96,6 +96,15 @@ describe('dd-app', function() {
     })
   });
 
+  describe('normalizeAttribute', function() {
+    it('should normalize attribute by stripping optional parameters', function() {
+      var testAttrs = ['data:ng-click','x:ng:src','ng:href'];
+      testAttrs = testAttrs.map(function(x){return ddLib.normalizeAttribute(x)});
+      expect(testAttrs[0]).toBe('ng-click');
+      expect(testAttrs[1]).toBe('ng-src');
+      expect(testAttrs[2]).toBe('ng-href');
+    })
+  })
   /* Upper and lower bounds of LD
       It is always at least the difference of the sizes of the two strings.
       It is at most the length of the longer string.
