@@ -152,8 +152,16 @@ var ddLib = {
   }
 }
 
+/**
+ *
+ *@param scopeElements: [] of HTML elements to be checked for incorrect attributes
+ *@param customDirectives: [] of custom directive objects from $compile decorator
+ *@param options: {} of options for app to run with:
+ *    options.tolerance: Integer, maximum Levenshtein Distance to be allowed for misspellings
+ *    options.directiveTypes: [] of which type of directives/attributes to search through
+ **/
 ddLib.beginSearch = function(scopeElements, customDirectives, options) {
-  // console.log(scopeElements)
+   console.log(scopeElements)
   if(!Array.isArray(scopeElements)) {
     throw new Error("Function beginSearch must be passed an array.");
   }
@@ -174,8 +182,17 @@ ddLib.findFailedElements = function(scopeElements, options) {
     .filter(function(x) {return x;});
 }
 
+/**
+ *@description
+ *Adds element tag name (DIV, P, SPAN) to list of attributes with '*' prepended
+ *for identification later.
+ *
+ *@param options: {} options object from beginSearch
+ *@param element: HTML element to check attributes of
+ *
+ *@return {} of html element and [] of failed attributes
+ **/
 ddLib.getFailedAttributesOfElement = function(options, element) {
-  //console.log(element);
   if(element.attributes.length) {
     var elementAttributes = Array.prototype.slice.call(element.attributes);
     elementAttributes.push({nodeName: "*"+element.nodeName.toLowerCase()});
@@ -189,6 +206,13 @@ ddLib.getFailedAttributesOfElement = function(options, element) {
   }
 };
 
+
+/**
+ *@param attributes: [] of attributes from element (includes tag name of element, e.g. DIV, P, etc.)
+ *@param options: {} options object from beginSearch
+ *
+ *@return [] of failedAttributes with their respective suggestions and directiveTypes
+ **/
 ddLib.getFailedAttributes = function(attributes, options) {
   var failedAttributes = [];
   for(var i = 0; i < attributes.length; i++) {
@@ -209,6 +233,15 @@ ddLib.getFailedAttributes = function(attributes, options) {
   return failedAttributes;
 };
 
+/**
+ *@param attribute: attribute name as string e.g. 'ng-click', 'width', 'src', etc.
+ *@param options: {} options object from beginSearch.
+ *
+ *@description attribute exsistance in the types of directives/attibutes (html, angular core, and
+ * angular custom) and checks the restrict property of values matches its use.
+ *
+ *@return {} with attribute exsistance and wrong use e.g. restrict property set to elements only.
+ **/
 ddLib.attributeExsistsInTypes = function(attribute, options) {
   var allTrue = false, wrongUse = '';
   options.directiveTypes.forEach(function(directiveType) {
@@ -239,6 +272,12 @@ ddLib.attributeExsistsInTypes = function(attribute, options) {
   return {exsists: allTrue, wrongUse: wrongUse};
 };
 
+/**
+ *@param attribute: attribute name as string e.g. 'ng-click', 'width', 'src', etc.
+ *@param options: {} options object from beginSearch.
+ *
+ *@return {} with closest match to attribute and the directive type it corresponds to.
+ **/
 ddLib.getSuggestions = function(attribute, options) {
   var min_levDist = Infinity, match = '', dirType = '';
   options.directiveTypes.forEach(function(directiveType) {
@@ -256,6 +295,13 @@ ddLib.getSuggestions = function(attribute, options) {
   return (match)? {match:match, directiveType:dirType}: null;
 };
 
+/**
+ *@param directiveTypeData: {} with list of directives/attributes and
+ *their respective restrict properties.
+ *@param attribute: attribute name as string e.g. 'ng-click', 'width', 'src', etc.
+ *
+ *@return {} with Levenshtein Distance and name of the closest match to given attribute.
+ **/
 ddLib.findClosestMatchIn = function(directiveTypeData, attribute) {
   if(typeof attribute != 'string') {
     throw new Error('Function must be passed a string as second parameter.');
@@ -275,10 +321,22 @@ ddLib.findClosestMatchIn = function(directiveTypeData, attribute) {
   return {min_levDist: min_levDist, match: closestMatch};
 };
 
+/**
+ *@param attribute: attribute name before normalization as string
+ * e.g. 'data-ng-click', 'width', 'x:ng:src', etc.
+ *
+ *@return normalized attribute name
+ **/
 ddLib.normalizeAttribute = function(attribute) {
   return attribute.replace(/^(?:data|x)[-_:]/,"").replace(/[:_]/g,'-');
 };
 
+/**
+ *@param failedElements: [] of {}s of all failed elements with their failed attributes and closest
+ *matches or restrict properties
+ *
+ *@return [] of failed messages.
+ **/
 ddLib.displayResults = function(failedElements) {
   var messages = [];
   failedElements.forEach(function(obj) {
@@ -302,6 +360,9 @@ ddLib.displayResults = function(failedElements) {
   return messages;
 };
 
+/**
+ *@param customDirectives: [] of custom directive objects from $compile decorator
+ **/
 ddLib.setCustomDirectives = function(customDirectives) {
   customDirectives.forEach(function(directive) {
     var directiveName = directive.directiveName.replace(/([A-Z])/g, '-$1').toLowerCase();
@@ -310,6 +371,13 @@ ddLib.setCustomDirectives = function(customDirectives) {
   })
 }
 
+/**
+ *@param s: first string to compare for Levenshtein Distance.
+ *@param t: second string to compare for Levenshtein Distance.
+ *
+ *@description
+ *Calculates the minimum number of changes (insertion, deletion, transposition) to get from s to t.
+ **/
 ddLib.levenshteinDistance = function(s, t) {
     if(typeof s !== 'string' || typeof t !== 'string') {
       throw new Error('Function must be passed two strings, given: '+typeof s+' and '+typeof t+'.');
